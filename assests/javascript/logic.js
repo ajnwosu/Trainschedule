@@ -1,24 +1,30 @@
-// Initialize Firebase
+
+  // Initialize Firebase
   var config = {
-    apiKey: "AIzaSyD6fLKGLhqdIih3ud3rbHcHVp41eFbhnxo",
-    authDomain: "aj-awesome-project.firebaseapp.com",
-    databaseURL: "https://aj-awesome-project.firebaseio.com",
-    projectId: "aj-awesome-project",
-    storageBucket: "aj-awesome-project.appspot.com",
-    messagingSenderId: "738648408624"
+    apiKey: "AIzaSyBtAkcDZ27ZXtESdqiiuGoqHTNZZQAUPKI",
+    authDomain: "traingame-5ed7d.firebaseapp.com",
+    databaseURL: "https://traingame-5ed7d.firebaseio.com",
+    projectId: "traingame-5ed7d",
+    storageBucket: "",
+    messagingSenderId: "855122759288"
   };
-  firebase.initializeApp(config)
+  firebase.initializeApp(config);
+  
 
   var database = firebase.database();
+
+  console.log(database)
 
 // 2. Create button for adding new trains - then update the html + update the databas
 
 $("#add-Train-btn").on('click',function(event){
 
+  event.preventDefault()
+
  // Grabs user input
-  var trainName = $("#Train-name-input").val().trim();
+  var trainName = $("#train-name-input").val().trim();
   var trainDes = $("#destination-input").val().trim();
-  var trainfirst = moment($("#first-input").val().trim(), "DD/MM/YY").format("X");
+  var trainfirst = moment($("#first-input").val().trim(), "HH:mm").subtract(10, "years").format("X");;
   var trainfreq = $("#frequency-input").val().trim();
 
 
@@ -35,23 +41,23 @@ $("#add-Train-btn").on('click',function(event){
   database.ref().push(newTrain);
 
 // Logs everything to console
- console.log("newTrain: " + newTrain);
-  console.log("Name: " + newTrain.name);
-  console.log("Destination: " +  newTrain.destination);
-  console.log("First Time:" + newTrain.first);
-  console.log("Frequency: " +newEmp.frequency);
+  console.log(newTrain.name);
+  console.log(newTrain.destination);
+  console.log(newTrain.first);
+  console.log(newEmp.frequency);
 
 
 
 
   // Alert
-  alert("train  added");
+  alert("Train added");
 
   // Clears all of the text-boxes
   $("#Train-name-input").val("");
   $("#destination-input").val("");
   $("#first-input").val("");
   $("#frequency-input").val("");
+  return false;
 });
 
 // 3. Create a way to retrieve employees from the employee database.
@@ -60,54 +66,47 @@ $("#add-Train-btn").on('click',function(event){
 
 database.ref().on("child_added", function(childSnapshot, prevChildKey) {
 
- console.log("Child Snapshot Value: " + childSnapshot.val());
+ alert(childSnapshot.val());
 
   var trainName = childSnapshot.val().name;
   var trainDes = childSnapshot.val().destination;
-  var trainFirst = childSnapshot.val().first;
-  var trainFreq = childSnapshot.val().frequency;
+  var trainfirst = childSnapshot.val().first;
+  var trainfreq = childSnapshot.val().frequency;
+
 
 
   console.log (trainName);
   console.log (trainDes);
-  console.log (trainFirst);
-  console.log (trainFreq)
+  console.log (trainfirst);
+  console.log (trainfreq)
 
-// 4. Create a way to calculate the Train time srrival. Using difference between start and current time.
+// 4. Create a way to calculate the months worked. Using difference between start and current time.
 
- // Current Time
-var currentTime = moment();
-  console.log(moment(currentTime).format("hh:mm"));
-
-// First Time (pushed back 1 year to make sure it comes before current time)
-var firstTimeConverted = moment(trainFirst, "hh:mm").subtract(1, "days");
-console.log(firstTimeConverted);
-
- // Time apart (remainder)
-  var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
-  console.log("Difference in time: " + diffTime)
+ // Prettify the employee start
+  var diffTime = moment().diff(moment.unix(trainfirst), "minutes");
 
   // Calculate  when the next train will arrive
   // To calculate the months worked
-  var timeRemainder =  diffTime % trainFreq;
-  console.log("Time Til Train: " + timeRemainder);
+  var timeRemainder = moment().diff(moment.unix(trainfirst, "X"), "minutes") % trainfreq;
+  console.log(timeRemainder);
 
   // Calculate the total billed rate
- var minutes = trainFreq - timeRemainder;
- console.log("MINUTES TILL TRAIN: " + minutes);
+ var minutes = trainfreq - timeRemainder;
+  console.log(minutes);
 
 
-  var nextArrival = moment().add(minutes, "minutes");
-  console.log("Next arrival: " + moment(nextArrival).format("hh:mm"));
+  var nextArrival = moment().add(minutes, "m").format("hh:mm A");
+
+  console.log(nextArrival);
 //    Then use moment.js formatting to set difference in months.
 // 5. Calculate Total billed
 
+// Append train info to table on page
+    // $("#trainTable > tbody").append("<tr><td>" + trainName + "</td><td>" +  trainDes + "</td><td>" + trainFreq + " mins" + "</td><td>" + nextArrival + "</td><td>" + minutes + "</td></tr>");
 
 // Add each train's data into the table
-  // $("#train-table > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDes + "</td><td>" +
-  // diffTime + "</td><td>" + timeRemainder + "</td><td>" + nextArrival + "</td><td>" + nextArrival+ "</td></tr>");
+  $("#Train-table > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDes + "</td><td>" +
+  diffTime + "</td><td>" + timeRemainder + "</td><td>" + nextArrival + "</td><td>" + nextArrival+ "</td></tr>");
 
+});
 
-  $("#trainTable > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDes  + "</td><td>" + trainFreq + "</td><td>" + moment(nextArrival).format("hh:mm") + "</td><td>" + minutes);
-
-  return false;
